@@ -3,12 +3,15 @@
  * Licensed under the MIT license.
  */
 #include "semaphore.h"
+#include "threadBodies.h"
 
 #include <stdio.h>
 #include <pthread.h>
 #include <devctl.h>
 #include <stdint.h>
 #include <fcntl.h>
+
+
 
 /******************************** VARIABLES ***********************************/
 pthread_t t1, t2;
@@ -20,17 +23,21 @@ int main()
 //	(void) pthread_create(&t1, NULL, readBody,  (void*) NULL);
 //	(void) pthread_create(&t2, NULL, writeBody, (void*) NULL);
 
+	// Create the semaphore in a thread-safe way (at the present moment the
+	// main is the only thread)
     int32_t result = semaphore_createPseudoFileSemaphore();
-    printf("- semaphore_createPseudoFileSemaphore(): %d\n", result);
+    printf("[MAIN] semaphore_createPseudoFileSemaphore(): %d\n", result);
 
-    int fd = -1;
-    result = semaphore_openPseudoFile(&fd, "/proc/1/as", O_RDONLY);
-    printf("- semaphore_openPseudoFile(): %d\n", result);
+    (void) pthread_create(&t1, NULL, threadBodies_readBody,  (void*) NULL);
+    (void) pthread_create(&t2, NULL, threadBodies_writeBody, (void*) NULL);
 
-    result = semaphore_closePseudoFile(fd);
-    printf("- semaphore_closePseudoFile(): %d\n", result);
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
 
+    threadBodies_printVisitedCPUs();
+    // Clean-up
     semaphore_deletePseudoFileSemaphore();
+    threadBodies_freePseudoFile();
 
 	return 0;
 }
