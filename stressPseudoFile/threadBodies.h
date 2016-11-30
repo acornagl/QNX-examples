@@ -13,6 +13,11 @@ void* threadBodies_readBody(void* ptr);
 
 void* threadBodies_writeBody(void* ptr);
 
+void* threadBodies_openPseudo1(void* ptr);
+
+void* threadBodies_callPid(void* ptr);
+
 void threadBodies_freePseudoFile(void);
 
 void threadBodies_printVisitedCPUs(void);
+

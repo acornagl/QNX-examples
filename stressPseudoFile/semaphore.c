@@ -41,8 +41,8 @@ int32_t semaphore_openPseudoFile(int* fileDescriptor,
 	if (result == 1)
 	{
 		printf("[%s] inside open\n", function);
-		(*fileDescriptor) = open(processDescriptor, mode);
-		printf("[%s]inside open, I have the lock and fd is: %d\n", function, *fileDescriptor);
+		(*fileDescriptor) = open64(processDescriptor, mode);
+		printf("[%s]inside open, I have the lock and fd is: %d - %s\n", function, *fileDescriptor, processDescriptor);
 		printf("[%s]inside open fd: %d.\n", function, *fileDescriptor);
 		if ((*fileDescriptor) == -1)
 		{

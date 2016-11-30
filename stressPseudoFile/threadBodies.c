@@ -32,6 +32,14 @@ volatile int   terminate     = NO;
 static   char* pseudoFile = "";
 int32_t traceCpus[KB_TO_TRACE * KB] = {-1};
 
+void* threadBodies_callPid(void* ptr){
+	while (!terminate)
+	{
+		printf("=-=-=-=-= callPID: %d\n",getpid());
+		(void)pthread_self();
+	}
+}
+
 void* threadBodies_readBody(void* ptr)
 {
 	int32_t processID = getpid();
@@ -77,6 +85,14 @@ void* threadBodies_readBody(void* ptr)
 				traceCpus[count] = status.last_cpu;
 			}
 		}
+		else
+		{
+			printf("[%s] can not open the file", __func__);
+			printf(
+						   "*** Error opening the pseudo-file.\n -- fd: %d\n -- name: %s -- Errno: %d, strerror(): %s\n",
+						   pseudoFileDescriptor, pseudoFile, errno, strerror(errno));
+			terminate = YES;
+		}
 
 		semaphore_closePseudoFile(pseudoFileDescriptor,__func__);
 
@@ -85,6 +101,45 @@ void* threadBodies_readBody(void* ptr)
 		{
 			terminate = YES;
 		}
+	}
+}
+
+void* threadBodies_openPseudo1(void* ptr)
+{
+	int32_t pseudoFileDescriptor = -1;
+	int32_t fileOpenResult = ERR;
+
+	while (!infoAvailable) {}
+
+	// Thread main action
+	while (!terminate)
+	{
+		(void) getpid();
+		double a = 15487651.2;
+		int q = 1;
+		for (; q < 1; q++)
+		{
+			a = (a+q)/a + 1;
+		}
+		printf("==open 1==\n");
+		fileOpenResult = semaphore_openPseudoFile(&pseudoFileDescriptor,
+												  "/proc/1/as", O_RDONLY, __func__);
+
+		if (pseudoFileDescriptor == -1)
+		{
+			printf("[%s] can not open the file", __func__);
+			printf(
+						   "*** Error opening the pseudo-file.\n -- fd: %d\n -- name: %s -- Errno: %d, strerror(): %s\n",
+						   pseudoFileDescriptor, pseudoFile, errno, strerror(errno));
+			terminate = YES;
+		}
+		q = 1;
+		for (; q < 1; q++)
+		{
+			a = (a+q)/a + 1;
+		}
+
+		semaphore_closePseudoFile(pseudoFileDescriptor,__func__);
 	}
 }
 
@@ -108,12 +163,23 @@ void* threadBodies_writeBody(void* ptr)
 				{
 					a = (a+q)/a + 1;
 				}
-		printf("==write==\n");
+		printf("==write== %s\n", pseudoFile);
 		fileOpenResult = semaphore_openPseudoFile(&pseudoFileDescriptor,
 				                                  pseudoFile, O_RDWR, __func__);
+		int xxx = getpid();
+        xxx = pthread_self();
+		if (errno != 0)
+		{
+			terminate = YES;
+			exit(0);
+		}
+		printf("errno: %d\n", errno);
+		terminate = YES;
+					exit(0);
 
 		if (pseudoFileDescriptor == -1)
 		{
+			printf("[%s] can not open the file", __func__);
 			printf(
 			   "*** Error opening the pseudo-file.\n -- fd: %d\n -- name: %s -- Errno: %d, strerror(): %s\n",
 			   pseudoFileDescriptor, pseudoFile, errno, strerror(errno));
